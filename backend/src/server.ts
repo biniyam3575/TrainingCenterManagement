@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { prisma } from "./config/prisma.js";
 import { authRoutes } from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.get("/api/db-test", async (req, res) => {
 
 // Mount Authentication routes
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
