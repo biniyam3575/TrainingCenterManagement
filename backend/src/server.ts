@@ -1,24 +1,32 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import express from "express";
+import cors from "cors";
+import { prisma } from "./config/prisma.js";
+import { authRoutes } from "./routes/authRoutes.js";
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
-app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+app.use(cors());
 app.use(express.json());
 
-// Healthcheck endpoint
-app.get('/api/v1/health', (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: 'TCMS Backend API is running successfully!',
-        timestamp: new Date().toISOString()
-    });
+// Database connection test route
+app.get("/api/db-test", async (req, res) => {
+    try {
+        const orgCount = await prisma.organization.count();
+        res.json({
+            success: true,
+            message: "Database connection active and verified with Prisma!",
+            orgCount
+        });
+    } catch (error) {
+        console.error("Database connection error:", error);
+        res.status(500).json({ success: false, error: "Database connection failed" });
+    }
 });
 
+// Mount Authentication routes
+app.use("/api/auth", authRoutes);
+
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });

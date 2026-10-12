@@ -1,7 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// Training Center Management System (TCMS) - Prisma Schema v7
 
 generator client {
   provider = "prisma-client"
@@ -12,4 +9,369 @@ datasource db {
   provider = "postgresql"
 }
 
+// ==========================================
+// ENUMS
+// ==========================================
 
+enum Role {
+  SUPER_ADMIN
+  MANAGER
+  RECEPTIONIST
+  INSTRUCTOR
+  ACCOUNTANT
+  STUDENT
+}
+
+enum StudentStatus {
+  ACTIVE
+  COMPLETED
+  GRADUATED
+  SUSPENDED
+  DROPPED
+  INACTIVE
+}
+
+enum BatchStatus {
+  PLANNED
+  OPEN_FOR_ENROLLMENT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum EnrollmentStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  DROPPED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum AssessmentType {
+  ASSIGNMENT
+  QUIZ
+  MIDTERM
+  FINAL
+  PRACTICAL
+  PROJECT
+  OTHER
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CARD
+  OTHER
+}
+
+// ==========================================
+// CORE MODELS
+// ==========================================
+
+model Organization {
+  id                String      @id @default(uuid())
+  name              String
+  logo              String?
+  phone             String?
+  email             String?
+  address           String?
+  website           String?
+  registrationInfo  String?
+  currency          String      @default("ETB")
+  defaultLanguage   String      @default("en")
+  receiptConfig     Json?
+  certificateConfig Json?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  users             User[]
+  courses           Course[]
+  classrooms        Classroom[]
+  students          Student[]
+}
+
+model User {
+  id             String       @id @default(uuid())
+  name           String
+  username       String       @unique
+  email          String       @unique
+  password       String
+  role           Role         @default(STUDENT)
+  status         String       @default("ACTIVE")
+  lastLogin      DateTime?
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  
+  instructor     Instructor?
+  auditLogs      AuditLog[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Student {
+  id               String        @id @default(uuid())
+  studentId        String        @unique
+  firstName        String
+  middleName       String?
+  lastName         String
+  gender           String?
+  dateOfBirth      DateTime?
+  phone            String
+  email            String?
+  address          String?
+  emergencyContact String?
+  registrationDate DateTime      @default(now())
+  photo            String?
+  notes            String?
+  status           StudentStatus @default(ACTIVE)
+  
+  organizationId   String
+  organization     Organization  @relation(fields: [organizationId], references: [id])
+  
+  enrollments      Enrollment[]
+  payments         Payment[]
+  certificates     Certificate[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model CourseCategory {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  courses     Course[]
+}
+
+model Course {
+  id                          String          @id @default(uuid())
+  courseCode                  String          @unique
+  name                        String
+  description                 String?
+  categoryId                  String
+  category                    CourseCategory  @relation(fields: [categoryId], references: [id])
+  duration                    String?
+  numberOfSessions            Int
+  courseFee                   Decimal         @db.Decimal(10, 2)
+  minimumAttendanceRequirement Float          @default(75.0)
+  passingScore                Float           @default(50.0)
+  certificateAvailability     Boolean         @default(true)
+  prerequisites               String?
+  status                      String          @default("ACTIVE")
+  
+  organizationId              String
+  organization                Organization    @relation(fields: [organizationId], references: [id])
+  
+  batches                     Batch[]
+  enrollments                 Enrollment[]
+  assessments                 Assessment[]
+  createdAt                   DateTime        @default(now())
+  updatedAt                   DateTime        @updatedAt
+}
+
+model Instructor {
+  id               String       @id @default(uuid())
+  userId           String       @unique
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  qualification    String?
+  specialization   String?
+  experience       String?
+  employmentStatus String       @default("FULL_TIME")
+  
+  batches          Batch[]
+  schedules        Schedule[]
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+}
+
+model Classroom {
+  id             String       @id @default(uuid())
+  name           String
+  capacity       Int
+  location       String?
+  equipment      String?
+  status         String       @default("AVAILABLE")
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  batches        Batch[]
+  schedules      Schedule[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Batch {
+  id           String       @id @default(uuid())
+  batchId      String       @unique
+  courseId     String
+  course       Course       @relation(fields: [courseId], references: [id])
+  instructorId String?
+  instructor   Instructor?  @relation(fields: [instructorId], references: [id])
+  classroomId  String?
+  classroom    Classroom?   @relation(fields: [classroomId], references: [id])
+  startDate    DateTime
+  endDate      DateTime
+  capacity     Int
+  status       BatchStatus  @default(PLANNED)
+  
+  schedules    Schedule[]
+  enrollments  Enrollment[]
+  attendances  Attendance[]
+  assessments  Assessment[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model Schedule {
+  id           String      @id @default(uuid())
+  batchId      String
+  batch        Batch       @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  courseId     String
+  instructorId String?
+  instructor   Instructor? @relation(fields: [instructorId], references: [id])
+  classroomId  String?
+  classroom    Classroom?  @relation(fields: [classroomId], references: [id])
+  date         DateTime
+  startTime    String
+  endTime      String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Enrollment {
+  id             String           @id @default(uuid())
+  studentId      String
+  student        Student          @relation(fields: [studentId], references: [id])
+  courseId       String
+  course         Course           @relation(fields: [courseId], references: [id])
+  batchId        String
+  batch          Batch            @relation(fields: [batchId], references: [id])
+  enrollmentDate DateTime         @default(now())
+  courseFee      Decimal          @db.Decimal(10, 2)
+  paymentPlan    Json?
+  status         EnrollmentStatus @default(ACTIVE)
+  
+  payments       Payment[]
+  receipts       Receipt[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([studentId, batchId])
+}
+
+model Attendance {
+  id        String           @id @default(uuid())
+  batchId   String
+  batch     Batch            @relation(fields: [batchId], references: [id])
+  studentId String
+  date      DateTime
+  status    AttendanceStatus @default(PRESENT)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model Assessment {
+  id           String         @id @default(uuid())
+  courseId     String
+  course       Course         @relation(fields: [courseId], references: [id])
+  batchId      String
+  batch        Batch          @relation(fields: [batchId], references: [id])
+  name         String
+  type         AssessmentType @default(ASSIGNMENT)
+  date         DateTime
+  maxScore     Float          @default(100.0)
+  passingScore Float          @default(50.0)
+  weight       Float          @default(1.0)
+  
+  grades       Grade[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model Grade {
+  id           String     @id @default(uuid())
+  assessmentId String
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  studentId    String
+  score        Float
+  remarks      String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([assessmentId, studentId])
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  paymentId     String        @unique
+  studentId     String
+  student       Student       @relation(fields: [studentId], references: [id])
+  enrollmentId  String
+  enrollment    Enrollment    @relation(fields: [enrollmentId], references: [id])
+  amount        Decimal       @db.Decimal(10, 2)
+  paymentDate   DateTime      @default(now())
+  paymentMethod PaymentMethod @default(CASH)
+  referenceNo   String?
+  recordedBy    String
+  notes         String?
+  
+  receipts      Receipt[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Receipt {
+  id               String     @id @default(uuid())
+  receiptNumber    String     @unique
+  paymentId        String
+  payment          Payment    @relation(fields: [paymentId], references: [id])
+  studentId        String
+  enrollmentId     String
+  enrollment       Enrollment @relation(fields: [enrollmentId], references: [id])
+  amountPaid       Decimal    @db.Decimal(10, 2)
+  previousBalance  Decimal    @db.Decimal(10, 2)
+  remainingBalance Decimal    @db.Decimal(10, 2)
+  paymentMethod    String
+  authorizedStaff  String
+  createdAt        DateTime   @default(now())
+}
+
+model Certificate {
+  id                  String   @id @default(uuid())
+  certificateId       String   @unique
+  studentId           String
+  student             Student  @relation(fields: [studentId], references: [id])
+  courseName          String
+  courseDuration      String
+  completionDate      DateTime @default(now())
+  organizationName    String
+  authorizedSignature String?
+  qrCodeUrl           String?
+  createdAt           DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String?
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+}
