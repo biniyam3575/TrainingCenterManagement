@@ -5,6 +5,7 @@ import { authRoutes } from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import organizationRoutes from "./routes/organizationRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
+import courseBatchRoutes from "./routes/courseBatchRoutes.js";
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/organization", organizationRoutes);
 app.use("/api/students", studentRoutes);
+app.use("/api/courses", courseBatchRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
