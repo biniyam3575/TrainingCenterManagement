@@ -138,8 +138,23 @@ model Student {
   enrollments      Enrollment[]
   payments         Payment[]
   certificates     Certificate[]
+  attendances      Attendance[]  // <--- ADD THIS LINE
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
+}
+
+model Attendance {
+  id        String           @id @default(uuid())
+  batchId   String
+  batch     Batch            @relation(fields: [batchId], references: [id])
+  studentId String
+  student   Student          @relation(fields: [studentId], references: [id])
+  date      DateTime
+  status    AttendanceStatus @default(PRESENT)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@unique([studentId, batchId, date]) // <--- ADD THIS LINE FOR UPSERT SUPPORT
 }
 
 model CourseCategory {
@@ -264,17 +279,6 @@ model Enrollment {
   updatedAt      DateTime         @updatedAt
 
   @@unique([studentId, batchId])
-}
-
-model Attendance {
-  id        String           @id @default(uuid())
-  batchId   String
-  batch     Batch            @relation(fields: [batchId], references: [id])
-  studentId String
-  date      DateTime
-  status    AttendanceStatus @default(PRESENT)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
 }
 
 model Assessment {
