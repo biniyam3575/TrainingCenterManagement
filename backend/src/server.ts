@@ -13,6 +13,7 @@ import feeRoutes from "./routes/feeRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import receiptRoutes from "./routes/receiptRoutes.js";
 import certificateRoutes from "./routes/certificateRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
 
 const app = express();
 
@@ -47,6 +48,7 @@ app.use("/api/fees", feeRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/receipts", receiptRoutes);
 app.use("/api/certificates", certificateRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
