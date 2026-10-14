@@ -11,6 +11,8 @@ import attendanceRoutes from "./routes/attendanceRoutes.js";
 import assessmentRoutes from "./routes/assessmentRoutes.js";
 import feeRoutes from "./routes/feeRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import receiptRoutes from "./routes/receiptRoutes.js";
+import certificateRoutes from "./routes/certificateRoutes.js";
 
 const app = express();
 
@@ -43,6 +45,8 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/assessments", assessmentRoutes);
 app.use("/api/fees", feeRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/receipts", receiptRoutes);
+app.use("/api/certificates", certificateRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

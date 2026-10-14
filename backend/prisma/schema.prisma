@@ -137,6 +137,7 @@ model Student {
   
   enrollments      Enrollment[]
   payments         Payment[]
+  receipts         Receipt[]
   certificates     Certificate[]
   attendances      Attendance[]  // <--- ADD THIS LINE
   createdAt        DateTime      @default(now())
@@ -337,6 +338,7 @@ model Receipt {
   paymentId        String
   payment          Payment    @relation(fields: [paymentId], references: [id])
   studentId        String
+  student          Student    @relation(fields: [studentId], references: [id]) // <--- ADD THIS
   enrollmentId     String
   enrollment       Enrollment @relation(fields: [enrollmentId], references: [id])
   amountPaid       Decimal    @db.Decimal(10, 2)
