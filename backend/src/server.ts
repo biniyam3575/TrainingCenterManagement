@@ -8,6 +8,7 @@ import studentRoutes from "./routes/studentRoutes.js";
 import courseBatchRoutes from "./routes/courseBatchRoutes.js";
 import enrollmentPaymentRoutes from "./routes/enrollmentPaymentRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
+import assessmentRoutes from "./routes/assessmentRoutes.js";
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use("/api/students", studentRoutes);
 app.use("/api/courses", courseBatchRoutes);
 app.use("/api/enrollments", enrollmentPaymentRoutes);
 app.use("/api/attendance", attendanceRoutes);
+app.use("/api/assessments", assessmentRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
