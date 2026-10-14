@@ -10,6 +10,7 @@ import enrollmentPaymentRoutes from "./routes/enrollmentPaymentRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
 import assessmentRoutes from "./routes/assessmentRoutes.js";
 import feeRoutes from "./routes/feeRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use("/api/enrollments", enrollmentPaymentRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/assessments", assessmentRoutes);
 app.use("/api/fees", feeRoutes);
+app.use("/api/payments", paymentRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
