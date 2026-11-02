@@ -72,10 +72,30 @@ export async function registerStudent(req: AuthenticatedRequest, res: Response) 
     }
 }
 
-// Get all students for the organization
+// Get all students for the organization (Supports optional ?search= and &status= query filters)
 export async function getStudents(req: AuthenticatedRequest, res: Response) {
     try {
+        const { search, status } = req.query;
+
+        // Build dynamic filter conditions
+        const whereCondition: any = {};
+
+        if (search) {
+            whereCondition.OR = [
+                { firstName: { contains: String(search), mode: "insensitive" } },
+                { lastName: { contains: String(search), mode: "insensitive" } },
+                { email: { contains: String(search), mode: "insensitive" } },
+                { phone: { contains: String(search), mode: "insensitive" } },
+                { studentId: { contains: String(search), mode: "insensitive" } },
+            ];
+        }
+
+        if (status) {
+            whereCondition.status = String(status);
+        }
+
         const students = await prisma.student.findMany({
+            where: whereCondition,
             include: {
                 enrollments: {
                     include: { course: true }

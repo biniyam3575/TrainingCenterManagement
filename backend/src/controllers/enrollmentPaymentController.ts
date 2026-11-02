@@ -68,7 +68,17 @@ export async function enrollStudent(req: AuthenticatedRequest, res: Response) {
 
 export async function getEnrollments(req: AuthenticatedRequest, res: Response) {
     try {
+        const { status, paymentPlan, courseId, batchId } = req.query;
+        const filters: any = {};
+
+        // Phase 26: Enrollment filtering[cite: 30]
+        if (status) filters.status = String(status);
+        if (paymentPlan) filters.paymentPlan = String(paymentPlan);
+        if (courseId) filters.courseId = String(courseId);
+        if (batchId) filters.batchId = String(batchId);
+
         const enrollments = await prisma.enrollment.findMany({
+            where: filters,
             include: { student: true, course: true, batch: true, payments: true },
             orderBy: { createdAt: "desc" },
         });
@@ -164,7 +174,23 @@ export async function recordPayment(req: AuthenticatedRequest, res: Response) {
 
 export async function getPayments(req: AuthenticatedRequest, res: Response) {
     try {
+        const { studentId, enrollmentId, paymentMethod, search } = req.query;
+        const filters: any = {};
+
+        if (studentId) filters.studentId = String(studentId);
+        if (enrollmentId) filters.enrollmentId = String(enrollmentId);
+        if (paymentMethod) filters.paymentMethod = String(paymentMethod);
+
+        // Phase 26: Search payments by reference number or payment ID
+        if (search) {
+            filters.OR = [
+                { paymentId: { contains: String(search), mode: "insensitive" } },
+                { referenceNo: { contains: String(search), mode: "insensitive" } },
+            ];
+        }
+
         const payments = await prisma.payment.findMany({
+            where: filters,
             include: { student: true, enrollment: { include: { course: true } }, receipts: true },
             orderBy: { createdAt: "desc" },
         });

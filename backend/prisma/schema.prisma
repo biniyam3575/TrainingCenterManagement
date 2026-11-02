@@ -111,6 +111,7 @@ model User {
   
   instructor     Instructor?
   auditLogs      AuditLog[]
+  notifications  Notification[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 }
@@ -367,9 +368,10 @@ model Certificate {
 
 model Notification {
   id        String   @id @default(uuid())
-  userId    String?
-  title     String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade) 
   message   String
+  type      String   @default("GENERAL")
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 }

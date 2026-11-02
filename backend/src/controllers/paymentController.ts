@@ -45,10 +45,26 @@ export async function recordPayment(req: AuthenticatedRequest, res: Response) {
 
 export async function getPayments(req: AuthenticatedRequest, res: Response) {
     try {
-        const { studentId, enrollmentId } = req.query;
+        const { studentId, enrollmentId, search, paymentMethod } = req.query;
+
         const filters: any = {};
+
+        // Existing ID filters
         if (studentId) filters.studentId = String(studentId);
         if (enrollmentId) filters.enrollmentId = String(enrollmentId);
+
+        // Phase 26: Payment method filter[cite: 30]
+        if (paymentMethod) {
+            filters.paymentMethod = String(paymentMethod);
+        }
+
+        // Phase 26: Search filter for paymentId or referenceNo[cite: 30]
+        if (search) {
+            filters.OR = [
+                { paymentId: { contains: String(search), mode: "insensitive" } },
+                { referenceNo: { contains: String(search), mode: "insensitive" } },
+            ];
+        }
 
         const payments = await prisma.payment.findMany({
             where: filters,

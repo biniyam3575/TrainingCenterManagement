@@ -91,7 +91,25 @@ export async function createCourse(req: AuthenticatedRequest, res: Response) {
 
 export async function getCourses(req: AuthenticatedRequest, res: Response) {
     try {
+        const { search, categoryId } = req.query;
+        const filters: any = {};
+
+        // Phase 26: Course search (name, courseCode, description)[cite: 30]
+        if (search) {
+            filters.OR = [
+                { name: { contains: String(search), mode: "insensitive" } },
+                { courseCode: { contains: String(search), mode: "insensitive" } },
+                { description: { contains: String(search), mode: "insensitive" } },
+            ];
+        }
+
+        // Phase 26: Category filter
+        if (categoryId) {
+            filters.categoryId = String(categoryId);
+        }
+
         const courses = await prisma.course.findMany({
+            where: filters,
             include: { category: true, batches: true },
             orderBy: { createdAt: "desc" },
         });
@@ -137,7 +155,24 @@ export async function createBatch(req: AuthenticatedRequest, res: Response) {
 
 export async function getBatches(req: AuthenticatedRequest, res: Response) {
     try {
+        const { search, status, courseId } = req.query;
+        const filters: any = {};
+
+        // Phase 26: Batch search (batchId)[cite: 30]
+        if (search) {
+            filters.batchId = { contains: String(search), mode: "insensitive" };
+        }
+
+        // Phase 26: Status & Course filters[cite: 30]
+        if (status) {
+            filters.status = String(status);
+        }
+        if (courseId) {
+            filters.courseId = String(courseId);
+        }
+
         const batches = await prisma.batch.findMany({
+            where: filters,
             include: { course: true, instructor: true, classroom: true },
             orderBy: { createdAt: "desc" },
         });

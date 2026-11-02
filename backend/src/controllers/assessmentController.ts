@@ -39,10 +39,17 @@ export async function createAssessment(req: AuthenticatedRequest, res: Response)
 
 export async function getAssessments(req: AuthenticatedRequest, res: Response) {
     try {
-        const { batchId, courseId } = req.query;
+        const { batchId, courseId, type, search } = req.query;
         const filters: any = {};
+
         if (batchId) filters.batchId = String(batchId);
         if (courseId) filters.courseId = String(courseId);
+        if (type) filters.type = String(type);
+
+        // Phase 26: Search assessments by name
+        if (search) {
+            filters.name = { contains: String(search), mode: "insensitive" };
+        }
 
         const assessments = await prisma.assessment.findMany({
             where: filters,
